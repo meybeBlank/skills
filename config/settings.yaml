@@ -1,0 +1,16 @@
+paths:
+  input: ~/Pictures/input
+  library: ./library
+  temp: /tmp/photo-manager
+
+video:
+  fps: 24
+  duration_per_photo: 3
+  resolution: "1920x1080"
+  format: "mp4"
+  codec: "libx264"
+  crf: 23
+
+minimax:
+  api_key: ""  # 填入你的 MiniMax API Key，或设置 ANTHROPIC_AUTH_TOKEN 环境变量
+  base_url: "https://api.minimaxi.com"
