@@ -1,16 +1,36 @@
 ---
 paths:
   - "**/*.py"
+  - "**/*.pyi"
 ---
+# Python 编码风格
 
-# 编码规范
+## 标准
 
-## 异步一致性
+- 遵循 **PEP 8** 约定
+- 所有函数签名使用 **类型注解**
 
-- 全链路使用 `async def` + `await`
-- **禁止**在异步函数中使用 `time.sleep()`（改用 `asyncio.sleep`）
+## 不可变性
 
-## 依赖注入
+优先使用不可变数据结构：
 
-- 所有 Use Case 和 Repository 通过构造函数 `__init__` 注入
-- **禁止**内部直接实例化依赖
+```python
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class User:
+    name: str
+    email: str
+
+from typing import NamedTuple
+
+class Point(NamedTuple):
+    x: float
+    y: float
+```
+
+## 格式化
+
+- 使用 **black** 进行代码格式化
+- 使用 **isort** 进行 import 排序
+- 使用 **ruff** 进行 linting

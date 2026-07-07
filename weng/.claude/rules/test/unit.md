@@ -16,6 +16,9 @@ paths:
 - **零 IO**：**禁止**访问文件系统、数据库、网络
 - **禁止**使用 `conftest.py` 中的 `test_session` / `test_engine` / `client` fixture
 - **禁止**导入 `src.infrastructure.*` 下的具体实现（只能导入 ports 抽象接口）
+- **每个用例独立构造被测对象与依赖**：`setUp`/`beforeEach` 仅用于不可变配置，每个用例独立创建 Mock/Fake 对象
+- **涉及全局状态时须在 `tearDown`/`afterEach` 中恢复**：`monkeypatch`/`mockStatic` 等修改全局状态的操作必须在用例结束后还原
+- **外部依赖替换须通过 DI 或接口抽象**：生产代码应提供构造函数注入/工厂接口等可注入点，测试通过公开注入点替换依赖，不可通过反射/私有字段 hack 重置状态
 
 ## 3. Mock 策略
 
@@ -68,6 +71,7 @@ mock_repo.get_by_username = Mock(return_value=None)  # await 会失败
 - **禁止**导入 `fastapi` / `sqlalchemy` / `httpx`（除 `pytest` / `unittest.mock` 外不引入第三方）
 - **禁止**使用 `@pytest.mark.asyncio` 装饰器（`asyncio_mode = auto` 自动收集）
 - **禁止**用 `print` 调试，必须用 `assert` 自验证
+- **禁止隐式断言**不允许"方法正常返回即未抛异常"作为唯一验证。必须显式断言副作用（状态变化 / mock 调用 / 返回值）。
 
 ## 7. 模板
 
