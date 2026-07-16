@@ -21,9 +21,9 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
   - **计数清零**：该回退环对应的审查节点判定 PASS后，此环计数清零；不同环的计数互不影响。
   - **熔断触发**：任一回退环计数达到 3 时停止该环的自动回退，上报用户。
 8. **需求变更回退**：任何节点若发现需求本身需要调整（而非当前节点产出有误）——例如新暴露的场景、与用户确认后需求范围变化、下游发现上游需求存在根本性遗漏或矛盾——**必须先向用户确认**，确认后可回退到 `需求理解` 节点重新拆解。此类回退属于需求变更，**不计入任何回退环的熔断计数**。回退后从需求理解节点重新顺序流转，已有存档按存档规则新建追加，不覆盖。
-9. **范式 Profile 驱动**：受项目结构影响的形态（契约产出形态、测试分层形态、审查探测方式、覆盖率工具落地）外置到 `.claude/profiles/<profile>.md`，按项目类型选定。
+9. **范式 Profile 驱动**：受项目结构影响的形态（契约产出形态、测试分层形态、审查探测方式、覆盖率工具落地）外置到 `.claude/commands/bdd_feature/profiles/<profile>.md`，按项目类型选定。
   - **选定时机**：`架构勘察`节点完成范式识别后选定 profile（如 `android` / `web`），写入架构基线结果包。profile 是形态的唯一裁定者，架构勘察是实例细节（框架版本、目录、命令、标注符号）的唯一裁定者，两者分工不重叠。
-  - **加载节点**：`验证矩阵`、`API契约`、`测试用例`、`代码开发`、`代码重构`、`全量测试`及三个审查节点，除读取自身节点文件与所列节点输入外，**追加读取架构基线选定的 `.claude/profiles/<profile>.md` 的对应章节**执行。
+  - **加载节点**：`验证矩阵`、`API契约`、`测试用例`、`代码开发`、`代码重构`、`全量测试`及三个审查节点，除读取自身节点文件与所列节点输入外，**追加读取架构基线选定的 `.claude/commands/bdd_feature/profiles/<profile>.md` 的对应章节**执行。
   - **优先级**：节点文件为通用骨架规则，profile 为项目类型特化规则；同一事项两者冲突时 **profile 优先**。节点文件中出现的 OpenAPI/Cucumber 等具体形态一律视为"形态之一的示例"，实际形态以选定 profile 为准。
   - **兜底**：项目类型无对应 profile 时，架构勘察标注"无先例"，给出建议形态并经用户确认，确认结果记入架构基线，供后续节点沿用。
 
@@ -38,14 +38,14 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 **路径定义**:
 - 文件存储路径：`trace_path` = `.weng/workflow/<时间戳-任务名>/`
 - 节点存档文件名规则：`doc` = `trace_path/<节点执行序号>_<节点名>_<节点结果1>`
-- 范式 profile 路径：`.claude/profiles/<profile>.md`（由`架构勘察`节点选定，供下游节点加载形态规则）
+- 范式 profile 路径：`.claude/commands/bdd_feature/profiles/<profile>.md`（由`架构勘察`节点选定，供下游节点加载形态规则）
 
 ** 子agent编排 **：
 - 子agent `bdd-stage-reviewer`（`.claude/agents/bdd-stage-reviewer.md`）：每次进入 `契约审查`、`测试审查`、`代码审查` 节点时，各创建一个新的审查agent，并以阶段参数区分审查内容（`contract` / `test-red` / `code-green`）。
 - 子agent `code-refactorer`（`.claude/agents/code-refactorer.md`）：每次进入 `代码重构` 节点时创建一个新的重构agent，对当前 git diff 的实现代码做结构优化，不改行为、保持测试常绿。
 
 节点存档示例：
-``` 
+```
 假设有3个节点：节点1、节点2、节点3。节点3输出两个部分结果
 一次任务的执行顺序为： 1 -> 2 -> 1 -> 3 (节点1进入两次，每次都会生成文档)
 最终节点存档文件应该有5个：
@@ -57,7 +57,7 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 ```
 
 ## 节点：需求理解
-** 流程编排规则文件 **：`.claude/nodes/bdd_requirement.md`
+** 流程编排规则文件 **：`.claude/commands/bdd_feature/bdd_requirement.md`
 ** 节点输入 **：用户输入的需求（PRD 文档或一句话口述需求）
 ** 节点结果 **：拆分需求理解结果包为多个文件
  - 需求理解与场景：`<doc>_需求理解结果包.md`（核心价值、快乐路径、模糊点清单、存量变更清单、场景登记表、场景详细描述、场景质量自检、待确认事项）
@@ -66,7 +66,7 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 ** 下一个节点 **：`架构勘察`
 
 ## 节点：架构勘察
-** 流程编排规则文件 **：`.claude/nodes/bdd_architecture_survey.md`
+** 流程编排规则文件 **：`.claude/commands/bdd_feature/bdd_architecture_survey.md`
 ** 节点输入 **：`<doc>_需求理解结果包.md`
 ** 节点结果 **：`<doc>_架构基线结果包.md`（技术栈、分层与目录落点、命名与编码约定、测试框架与约定、同类实现参考、本次改动落点、待确认事项）
 ** 说明 **：只读探测项目现有架构，产出的架构基线是后续验证矩阵、契约、测试、代码阶段技术选型与目录落点的统一依据
@@ -74,13 +74,13 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 ** 下一个节点 **：`验证矩阵`
 
 ## 节点：验证矩阵
-** 流程编排规则文件 **：`.claude/nodes/bdd_verification_matrix.md`
+** 流程编排规则文件 **：`.claude/commands/bdd_feature/bdd_verification_matrix.md`
 ** 节点输入 **：`<doc>_需求理解结果包.md`、`<doc>_Gherkin场景文件.md`、`<doc>_架构基线结果包.md`
 ** 节点结果 **：`<doc>_验证矩阵结果包.md`（业务规则清单、场景-规则映射、分层验证分配、验证矩阵含变更类型列、回归范围、空白检查、覆盖率统计）
 ** 下一个节点 **：`API契约`
 
 ## 节点：API契约
-** 流程编排规则文件 **：`.claude/nodes/bdd_api_contract.md`
+** 流程编排规则文件 **：`.claude/commands/bdd_feature/bdd_api_contract.md`
 ** 进入条件 **：验证矩阵结果包中**集成测试层存在至少一个非空场景**，**且**本次改动触及边界接口契约（对某跨边界接口的签名或语义有新增/修改/删除）。两种跳过情形均跳过本节点及`契约审查`节点直接进入`测试用例`并记录原因：集成层全空（无对外接口交互）；集成层非空但仅消费既有接口、未改其签名/语义（此时集成测试直接针对既有契约编写）
 ** 节点输入 **：
   - 首次进入节点：`<doc>_需求理解结果包.md`、`<doc>_验证矩阵结果包.md`、`<doc>_架构基线结果包.md`
@@ -100,7 +100,7 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 ** 下一个节点 **：如果审查结论为PASS，跳转到`测试用例`；否则，跳转到`API契约`修改契约（连续 FAIL 达 3 次触发回退熔断，上报用户）
 
 ## 节点：测试用例
-** 流程编排规则文件 **：`.claude/nodes/bdd_test_red.md`
+** 流程编排规则文件 **：`.claude/commands/bdd_feature/bdd_test_red.md`
 ** 节点输入 **：
   - 首次进入节点：`<doc>_Gherkin场景文件.md`、`<doc>_验证矩阵结果包.md`、`<doc>_架构基线结果包.md`、`<doc>_契约.<ext>`（如果存在）
   - 从`测试审查`节点进入：`<doc>_测试审查报告.md`
@@ -117,7 +117,7 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 ** 下一个节点 **：如果审查结论为PASS，跳转到`代码开发`；否则，跳转到`测试用例`修改测试（连续 FAIL 达 3 次触发回退熔断，上报用户）
 
 ## 节点：代码开发
-** 流程编排规则文件 **：`.claude/nodes/bdd_code_green.md`
+** 流程编排规则文件 **：`.claude/commands/bdd_feature/bdd_code_green.md`
 ** 节点输入 **：
   - 首次进入节点：`<doc>_测试用例开发结果包.md`、`<doc>_验证矩阵结果包.md`、`<doc>_架构基线结果包.md`、`<doc>_契约.<ext>`（如果存在）
   - 从`代码审查`节点进入：`<doc>_代码审查报告.md`
@@ -126,7 +126,7 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 ** 下一个节点 **：`代码重构`
 
 ## 节点：代码重构
-** 流程编排规则文件 **：`.claude/nodes/bdd_refactor.md`
+** 流程编排规则文件 **：`.claude/commands/bdd_feature/bdd_refactor.md`
 ** 子agent **：`code-refactorer`（`.claude/agents/code-refactorer.md`），必须使用子agent在独立上下文中对当前 git diff 的实现代码执行结构优化，禁止在主agent中直接重构。
 ** 节点输入 **：
   - `<doc>_代码开发结果包.md`（实现文件清单、绿灯确认、自检遗留项）
@@ -150,7 +150,7 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 ** 下一个节点 **：如果审查结论为PASS，跳转到`全量测试`；否则，跳转到`代码开发`修改代码（连续 FAIL 达 3 次触发回退熔断，上报用户）。
 
 ## 节点：全量测试
-** 流程编排规则文件 **：`.claude/nodes/test_run.md`
+** 流程编排规则文件 **：`.claude/commands/bdd_feature/bdd_test_run.md`
 ** 节点输入 **：`<doc>_验证矩阵结果包.md`、`<doc>_架构基线结果包.md`（测试运行命令与覆盖率工具）
 ** 节点结果 **：全部通过/存在失败、覆盖率达标判定、`<doc>_测试结果汇总.md`
 ** 下一个节点 **：
@@ -159,7 +159,7 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
   - 测试全通过但改动覆盖率不达标 → 跳转到`代码开发`节点补充测试与实现（计入回退熔断），或经用户显式确认后放行到`代码提交`
 
 ## 节点：代码提交
-** 流程编排规则文件 **：`.claude/nodes/commit.md`
+** 流程编排规则文件 **：`.claude/commands/bdd_feature/bdd_commit.md`
 ** 节点输入 **：全流程各节点存档（trace_path 下结果包）、`<doc>_测试结果汇总.md`
 ** 节点结果 **：提交信息、提交/推送状态、工作摘要
 ** 用户确认 **：**必须用户确认**是否提交git仓库（提交前），**必须用户确认**是否推送改动到远程仓库（推送前），两道确认独立
