@@ -20,7 +20,7 @@ description: 以TDD(测试驱动开发)为核心的问题解决(bug修复)工作
   - **不计入熔断的回退**：问题理解调整回退（规则 8）、复现不可复现处置（规则 9）、根因假设错误回退问题理解（见代码修改节点，须先经用户确认）均不进入上述两环。
 8. **问题理解调整回退**（不计入熔断）：任何节点若发现**问题理解本身**需调整（复现发现触发条件与描述不符、测试发现根因假设错误、代码修改发现根因在另一模块），**必须先向用户确认**，确认后回退 `问题理解` 重新理解。已有存档新建文档。
 9. **复现不可复现处置**：`问题复现` 无法稳定复现（偶现/环境依赖/疑似已修复）时**不自动回退**，上报用户决策（调整复现策略 / 回退问题理解补充 / 终止）。
-10. **范式 Profile 驱动**：受项目结构影响的形态外置到 `.claude/commands/tdd_bug/profiles/<profile>.md`。
+10. **范式 Profile 驱动**：受项目结构影响的形态外置到 `.claude/nodes/tdd_bug/profiles/<profile>.md`。
   - `架构勘察` 节点选定 profile 写入架构基线；profile 裁定形态，架构勘察裁定实例细节（框架版本/目录/命令/标注符号）。
   - **加载节点**：`测试用例开发`、`代码修改`、`全量测试`、`代码重构`（复用 bdd 版自带加载）追加读取选定 profile 对应章节执行。
   - **加载章节**（与 BDD 差异）：bug 流程只加载"测试分层形态""审查探测方式""覆盖率工具落地"三章，**不加载"契约产出形态"**（无契约阶段）。
@@ -38,7 +38,7 @@ description: 以TDD(测试驱动开发)为核心的问题解决(bug修复)工作
 - `trace_path` = `.weng/workflow/<时间戳-任务名>/`
 - `doc` = `trace_path/<节点执行序号>_<节点名>`（节点存档文件名前缀，序号按全局进入顺序递增；同一节点多次进入序号递增，节点名相同）
 - 节点结果文件名 = `<doc>_<节点结果>.md`
-- profile 路径：`.claude/commands/tdd_bug/profiles/<profile>.md`
+- profile 路径：`.claude/nodes/tdd_bug/profiles/<profile>.md`
 
 **子agent编排**：
 - `code-refactorer`（`.claude/agents/code-refactorer.md`）：进入 `代码重构` 节点时创建，对 git diff 实现代码做结构优化，不改行为、保持测试常绿。
@@ -47,14 +47,14 @@ description: 以TDD(测试驱动开发)为核心的问题解决(bug修复)工作
 节点存档示例：节点1→2→1→3（节点1两次进入、节点3两个结果）共 5 个文件：`01_节点1`、`02_节点2`、`03_节点1`、`04_节点3_结果1`、`04_节点3_结果2`。
 
 ## 节点：问题理解
-** 流程编排规则文件 **：`.claude/commands/tdd_bug/tdd_bug_problem_understanding.md`
+** 流程编排规则文件 **：`.claude/nodes/tdd_bug/tdd_bug_problem_understanding.md`
 ** 节点输入 **：用户输入的问题描述（bug 报告或一句话口述）
 ** 节点结果 **：`<doc>_问题理解结果包.md`
 ** 用户确认 **：**必须用户确认**后才能下一步
 ** 下一个节点 **：`问题复现`
 
 ## 节点：问题复现
-** 流程编排规则文件 **：`.claude/commands/tdd_bug/tdd_bug_reproduce.md`
+** 流程编排规则文件 **：`.claude/nodes/tdd_bug/tdd_bug_reproduce.md`
 ** 节点输入 **：`<doc>_问题理解结果包.md`
 ** 节点结果 **：`<doc>_复现结果包.md`
 ** 说明 **：目标仅是证明 bug 可稳定复现（=红）并记录证据，**不要求合规测试用例**——复现手段可为临时测试/脚本/手动操作/日志断言。规范化留待 `测试用例开发` 阶段。
@@ -62,14 +62,14 @@ description: 以TDD(测试驱动开发)为核心的问题解决(bug修复)工作
 ** 下一个节点 **：稳定复现 → `架构勘察`；无法稳定复现 → 上报用户决策（不自动回退）
 
 ## 节点：架构勘察
-** 流程编排规则文件 **：`.claude/commands/tdd_bug/tdd_bug_architecture_survey.md`
+** 流程编排规则文件 **：`.claude/nodes/tdd_bug/tdd_bug_architecture_survey.md`
 ** 节点输入 **：`<doc>_问题理解结果包.md`、`<doc>_复现结果包.md`
 ** 节点结果 **：`<doc>_架构基线结果包.md`
 ** 用户确认（条件性）**：架构基线"待确认事项"非空时必须用户确认；为空自动流转
 ** 下一个节点 **：`测试用例开发`
 
 ## 节点：测试用例开发
-** 流程编排规则文件 **：`.claude/commands/tdd_bug/tdd_bug_test_red.md`
+** 流程编排规则文件 **：`.claude/nodes/tdd_bug/tdd_bug_test_red.md`
 ** 节点输入 **：
  - 首次进入：`<doc>_问题理解结果包.md`、`<doc>_复现结果包.md`、`<doc>_架构基线结果包.md`；
  - 从`代码修改`进入：标注回退原因回退本节点，**计入"测试用例开发回退环"**
@@ -77,7 +77,7 @@ description: 以TDD(测试驱动开发)为核心的问题解决(bug修复)工作
 ** 下一个节点 **：`代码修改`
 
 ## 节点：代码修改
-** 流程编排规则文件 **：`.claude/commands/tdd_bug/tdd_bug_code_green.md`
+** 流程编排规则文件 **：`.claude/nodes/tdd_bug/tdd_bug_code_green.md`
 ** 节点输入 **：
  - 首次进入：`<doc>_测试用例开发结果包.md`、`<doc>_问题理解结果包.md`、`<doc>_架构基线结果包.md`；
  - 从`代码审查`进入：`<doc>_代码审查报告.md`（上游节点进入的存档序号）；
@@ -90,7 +90,7 @@ description: 以TDD(测试驱动开发)为核心的问题解决(bug修复)工作
  - 根因假设错误 → 上报用户确认后回退 `问题理解`
 
 ## 节点：代码重构
-** 流程编排规则文件 **：`.claude/commands/tdd_bug/tdd_bug_refactor.md`
+** 流程编排规则文件 **：`.claude/nodes/tdd_bug/tdd_bug_refactor.md`
 ** 子agent **：`code-refactorer`（`.claude/agents/code-refactorer.md`），隔离上下文重构，禁止主 agent 直接重构
 ** 节点输入 **：`<doc>_架构基线结果包.md`、`<doc>_问题理解结果包.md`（回归范围）、`<doc>_测试用例开发结果包.md`（回归保绿基线）、当前 git diff
 ** 节点结果 **：`<doc>_代码重构结果包.md`
@@ -100,14 +100,14 @@ description: 以TDD(测试驱动开发)为核心的问题解决(bug修复)工作
  - 存在回红且子 agent 无法自修 → `代码修改`（计入"代码修改回退环"）
 
 ## 节点：代码审查
-** 流程编排规则文件 **：`.claude/commands/tdd_bug/tdd_bug_code_review.md`
+** 流程编排规则文件 **：`.claude/nodes/tdd_bug/tdd_bug_code_review.md`
 ** 子agent **：`bdd-stage-reviewer`（阶段参数 `code-green`，`.claude/agents/bdd-stage-reviewer.md`），隔离上下文审查，禁止主 agent 直接审查
 ** 节点输入 **：`<doc>_问题理解结果包.md`、`<doc>_架构基线结果包.md`、`<doc>_代码修改结果包.md`、`<doc>_代码重构结果包.md`、`<doc>_测试用例开发结果包.md`
 ** 节点结果 **：审查结论 PASS/FAIL、`<doc>_代码审查报告.md`（子 agent 返回后**必须将报告原文写入** `trace_path/<doc>_代码审查报告.md`，单文件存档，下游代码修改回退直接读此文件）
 ** 下一个节点 **：PASS → `全量测试`；FAIL → `代码修改`（计入"代码修改回退环"）
 
 ## 节点：全量测试
-** 流程编排规则文件 **：`.claude/commands/tdd_bug/tdd_bug_test_run.md`
+** 流程编排规则文件 **：`.claude/nodes/tdd_bug/tdd_bug_test_run.md`
 ** 节点输入 **：`<doc>_问题理解结果包.md`（回归范围）、`<doc>_测试用例开发结果包.md`（复现+扩展+回归用例）、`<doc>_代码修改结果包.md`（改动清单）、`<doc>_架构基线结果包.md`（测试命令与覆盖率工具）
 ** 节点结果 **：全部通过/存在失败、覆盖率达标判定、`<doc>_测试结果汇总.md`
 ** 下一个节点 **：
@@ -118,7 +118,7 @@ description: 以TDD(测试驱动开发)为核心的问题解决(bug修复)工作
  - 全通过但改动对齐存疑 → `代码修改`排查（计入"代码修改回退环"）；以上覆盖率不达标亦支持用户确认放行（用户确认放行不触发回退、不计熔断）
 
 ## 节点：代码提交
-** 流程编排规则文件 **：`.claude/commands/tdd_bug/tdd_bug_commit.md`
+** 流程编排规则文件 **：`.claude/nodes/tdd_bug/tdd_bug_commit.md`
 ** 节点输入 **：全流程各节点存档、`<doc>_测试结果汇总.md`
 ** 节点结果 **：提交信息、提交/推送状态、工作摘要
 ** 用户确认 **：**必须用户确认**是否提交（提交前），**必须用户确认**是否推送（推送前），两道确认独立
