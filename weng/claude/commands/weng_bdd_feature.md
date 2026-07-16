@@ -94,7 +94,9 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 ** 流程编排规则文件 **：`.claude/agents/bdd-stage-reviewer.md`
 ** 子agent **：`bdd-stage-reviewer`（阶段参数 `contract`），必须使用子agent在独立上下文中审查，禁止在主agent中直接审查
 ** 节点输入 **：`<doc>_验证矩阵结果包.md`、`<doc>_契约约定结果包.md`、`<doc>_契约.<ext>`
-** 节点结果 **：审查结论：PASS/FAIL、`<doc>_契约审查报告.md`
+** 节点结果 **：
+ - 审查结论：PASS/FAIL、`<doc>_契约审查_审查报告.md`
+ - 文件落盘：子agent 返回结构化审查报告后，**必须将审查报告原文写入** `trace_path/<节点执行序号>_契约审查_审查报告.md`
 ** 下一个节点 **：如果审查结论为PASS，跳转到`测试用例`；否则，跳转到`API契约`修改契约（连续 FAIL 达 3 次触发回退熔断，上报用户）
 
 ## 节点：测试用例
@@ -109,7 +111,9 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 ** 流程编排规则文件 **：`.claude/agents/bdd-stage-reviewer.md`
 ** 子agent **：`bdd-stage-reviewer`（阶段参数 `test-red`），必须使用子agent在独立上下文中审查，禁止在主agent中直接审查
 ** 节点输入 **：`<doc>_验证矩阵结果包.md`、`<doc>_测试用例开发结果包.md`
-** 节点结果 **：审查结论：PASS/FAIL、`<doc>_测试审查报告.md`
+** 节点结果 **：
+ - 审查结论：PASS/FAIL、`<doc>_测试审查_审查报告.md`
+ - 文件落盘：子agent 返回结构化审查报告后，**必须将审查报告原文写入** `trace_path/<节点执行序号>_测试审查_审查报告.md`
 ** 下一个节点 **：如果审查结论为PASS，跳转到`代码开发`；否则，跳转到`测试用例`修改测试（连续 FAIL 达 3 次触发回退熔断，上报用户）
 
 ## 节点：代码开发
@@ -140,7 +144,9 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 ** 流程编排规则文件 **：`.claude/agents/bdd-stage-reviewer.md`
 ** 子agent **：`bdd-stage-reviewer`（阶段参数 `code-green`），必须使用子agent在独立上下文中审查 git 改动，禁止在主agent中直接审查
 ** 节点输入 **：`<doc>_验证矩阵结果包.md`、`<doc>_架构基线结果包.md`、`<doc>_契约.<ext>`（如果存在）、`<doc>_代码开发结果包.md`、`<doc>_代码重构结果包.md`
-** 节点结果 **：审查结论：PASS/FAIL、`<doc>_代码审查报告.md`
+** 节点结果 **：
+ - 审查结论：PASS/FAIL、`<doc>_代码审查_审查报告.md`
+ - 文件落盘：子agent 返回结构化审查报告后，**必须将审查报告原文写入** `trace_path/<节点执行序号>_代码审查_审查报告.md`
 ** 下一个节点 **：如果审查结论为PASS，跳转到`全量测试`；否则，跳转到`代码开发`修改代码（连续 FAIL 达 3 次触发回退熔断，上报用户）。
 
 ## 节点：全量测试
