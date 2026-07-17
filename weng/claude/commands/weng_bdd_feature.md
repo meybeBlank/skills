@@ -41,7 +41,7 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 - 范式 profile 路径：`.claude/nodes/bdd_feature/profiles/<profile>.md`（由`架构勘察`节点选定，供下游节点加载形态规则）
 
 ** 子agent编排 **：
-- 子agent `bdd-stage-reviewer`（`.claude/agents/bdd-stage-reviewer.md`）：每次进入 `契约审查`、`测试审查`、`代码审查` 节点时，各创建一个新的审查agent，并以阶段参数区分审查内容（`contract` / `test-red` / `code-green`）。
+- 子agent `bdd-stage-reviewer`（`.claude/agents/bdd-stage-reviewer.md`）：每次进入`契约审查`节点时，创建一个新的审查agent，并以参数区分审查内容。
 - 子agent `code-refactorer`（`.claude/agents/code-refactorer.md`）：每次进入 `代码重构` 节点时创建一个新的重构agent，对当前 git diff 的实现代码做结构优化，不改行为、保持测试常绿。
 - 子agent `backend-dev`：每次进入 `后端开发` 复合节点时，使用 Agent 工具（`subagent_type="general-purpose"`）在**隔离上下文**中执行完整的后端 BDD 开发流程。
 - 子agent `frontend-dev`：每次进入 `前端开发` 复合节点时，使用 Agent 工具（`subagent_type="general-purpose"`）在**隔离上下文**中执行完整的前端 BDD 开发流程。
