@@ -23,7 +23,7 @@ model: Opus
 
 ## 范式 Profile 加载
 
-审查前，先从架构基线结果包读取选定的范式 profile（`android` / `web` 等），并读取 `.claude/profiles/<profile>.md` 的对应章节：
+审查前，先从架构基线结果包读取选定的范式 profile（`android` / `web` 等），并读取 `.claude/nodes/bdd_feature/profiles/<profile>.md` 的对应章节：
 
 - `contract` 审查：读"契约产出形态""审查探测方式"章节，按该形态核对契约（OpenAPI 结构核对 vs 进程内接口签名表核对 vs 事件契约核对）
 - `test-red` / `code-green` 审查：读"审查探测方式""测试分层形态"章节，按项目实际的场景 ID 标注符号与测试承载形态做抽查
