@@ -43,6 +43,8 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 ** 子agent编排 **：
 - 子agent `bdd-stage-reviewer`（`.claude/agents/bdd-stage-reviewer.md`）：每次进入 `契约审查`、`测试审查`、`代码审查` 节点时，各创建一个新的审查agent，并以阶段参数区分审查内容（`contract` / `test-red` / `code-green`）。
 - 子agent `code-refactorer`（`.claude/agents/code-refactorer.md`）：每次进入 `代码重构` 节点时创建一个新的重构agent，对当前 git diff 的实现代码做结构优化，不改行为、保持测试常绿。
+- 子agent `backend-dev`：每次进入 `后端开发` 复合节点时，使用 Agent 工具（`subagent_type="general-purpose"`）在**隔离上下文**中执行完整的后端 BDD 开发流程。
+- 子agent `frontend-dev`：每次进入 `前端开发` 复合节点时，使用 Agent 工具（`subagent_type="general-purpose"`）在**隔离上下文**中执行完整的前端 BDD 开发流程。
 
 节点存档示例：
 ```
@@ -104,42 +106,71 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 ** 场景判定 **：读取验证矩阵结果包的"前后端行为归属"表，"纯后端"或"前后端组合"行任一存在 → 有后端场景；"纯前端"或"前后端组合"行任一存在 → 有前端场景
 
 ## 复合节点：后端开发
-** 类型 **：子流程
-** 子流程编排文件 **：`.claude/commands/weng_bdd_feature_backend.md`
+** 类型 **：子agent（`backend-dev`）
 ** 进入条件 **：验证矩阵结果包中存在"纯后端"或"前后端组合"归属的场景
-** 上下文传递 **：
-  - 子流程 trace_path = `<主trace_path>/backend/`
-  - 可读白名单（主流程节点存档）：
-    - `<doc>_需求理解结果包.md`
-    - `<doc>_Gherkin场景文件.md`
-    - `<doc>_验证矩阵结果包.md`
-    - `<doc>_架构基线结果包.md`
-    - `<doc>_契约.<ext>`（如果存在）
-** 子流程结果 **：`<主trace_path>/backend/后端开发结果包.md`（PASS/FAIL + 各阶段记录 + 实现文件清单）
+** 执行方式 **：使用 Agent 工具启动隔离的子agent，而非在主agent上下文中内联执行。子agent 类型 `general-purpose`（需完整工具权限：读写代码、运行测试、执行 git 操作）
+** Agent prompt 构造 **：
+  1. 读取 `.claude/commands/weng_bdd_feature_backend.md` 的完整内容作为子agent 指令体
+  2. 在指令体前追加上下文参数块：
+     - 主流程 trace_path：`<主trace_path>`
+     - 子agent trace_path：`<主trace_path>/backend/`（子agent 的所有阶段产出写入此目录）
+     - 项目根目录：`<当前项目根目录绝对路径>`
+     - 当前 git 分支：`<当前分支名>`
+     - 输入文件（完整绝对路径）：
+       - `<doc>_需求理解结果包.md`
+       - `<doc>_Gherkin场景文件.md`
+       - `<doc>_验证矩阵结果包.md`
+       - `<doc>_架构基线结果包.md`
+       - `<doc>_契约.<ext>`（如果存在）
+  3. 在指令体末尾追加：要求子agent 完成所有阶段后，返回结构化结果摘要（PASS/FAIL + 各阶段记录 + 实现文件清单），各阶段详细产出直接写入 trace_path 对应文件
+** Agent 调用 **：
+  ```
+  Agent(
+    description: "后端BDD开发-{任务名}",
+    subagent_type: "general-purpose",
+    prompt: "{上下文参数块}\n\n{backend.md全文}\n\n{返回格式要求}"
+  )
+  ```
+** 结果处理 **：子agent 返回后，主agent 将返回的结构化结果写入 `<主trace_path>/backend/后端开发结果包.md`。主agent **不在自己的上下文中读取后端源码改动细节**，仅读取结果包做流转判断
 ** 下一个节点 **：
-  - 子流程 PASS 且 验证矩阵有前端场景 → `前端开发`
-  - 子流程 PASS 且 验证矩阵无前端场景 → `全量测试`
-  - 子流程 FAIL → 上报用户（子流程内部已达熔断上限），由用户决策继续/调整/终止
+  - 子agent 返回 PASS 且 验证矩阵有前端场景 → `前端开发`
+  - 子agent 返回 PASS 且 验证矩阵无前端场景 → `全量测试`
+  - 子agent 返回 FAIL → 上报用户（子agent 内部已达熔断上限），由用户决策继续/调整/终止
 ** 跳过条件 **：验证矩阵无后端场景（全部纯前端），直接跳转到 `前端开发`
 
 ## 复合节点：前端开发
-** 类型 **：子流程
-** 子流程编排文件 **：`.claude/commands/weng_bdd_feature_frontend.md`
+** 类型 **：子agent（`frontend-dev`）
+** 前置依赖 **：后端开发已 PASS（若存在后端管线，确保后端 API 已就绪），通过读取 `<主trace_path>/backend/后端开发结果包.md` 确认
 ** 进入条件 **：验证矩阵结果包中存在"纯前端"或"前后端组合"归属的场景
-** 上下文传递 **：
-  - 子流程 trace_path = `<主trace_path>/frontend/`
-  - 可读白名单（主流程节点存档 + 后端子流程结果）：
-    - `<doc>_需求理解结果包.md`
-    - `<doc>_Gherkin场景文件.md`
-    - `<doc>_验证矩阵结果包.md`
-    - `<doc>_架构基线结果包.md`
-    - `<doc>_契约.<ext>`（如果存在）
-    - `<主trace_path>/backend/后端开发结果包.md`（前端子流程需要确认后端 API 已就绪）
-** 子流程结果 **：`<主trace_path>/frontend/前端开发结果包.md`（PASS/FAIL + 各阶段记录 + 实现文件清单）
+** 执行方式 **：使用 Agent 工具启动隔离的子agent，而非在主agent上下文中内联执行。子agent 类型 `general-purpose`（需完整工具权限：读写代码、运行测试、执行 git 操作）
+** Agent prompt 构造 **：
+  1. 读取 `.claude/commands/weng_bdd_feature_frontend.md` 的完整内容作为子agent 指令体
+  2. 在指令体前追加上下文参数块：
+     - 主流程 trace_path：`<主trace_path>`
+     - 子agent trace_path：`<主trace_path>/frontend/`（子agent 的所有阶段产出写入此目录）
+     - 项目根目录：`<当前项目根目录绝对路径>`
+     - 当前 git 分支：`<当前分支名>`
+     - 后端开发结果包（如执行了后端管线）：`<主trace_path>/backend/后端开发结果包.md`
+     - 输入文件（完整绝对路径）：
+       - `<doc>_需求理解结果包.md`
+       - `<doc>_Gherkin场景文件.md`
+       - `<doc>_验证矩阵结果包.md`
+       - `<doc>_架构基线结果包.md`
+       - `<doc>_契约.<ext>`（如果存在）
+  3. 在指令体末尾追加：要求子agent 完成所有阶段后，返回结构化结果摘要（PASS/FAIL + 各阶段记录 + 实现文件清单 + 契约一致性核对），各阶段详细产出直接写入 trace_path 对应文件
+** Agent 调用 **：
+  ```
+  Agent(
+    description: "前端BDD开发-{任务名}",
+    subagent_type: "general-purpose",
+    prompt: "{上下文参数块}\n\n{frontend.md全文}\n\n{返回格式要求}"
+  )
+  ```
+** 结果处理 **：子agent 返回后，主agent 将返回的结构化结果写入 `<主trace_path>/frontend/前端开发结果包.md`。主agent **不在自己的上下文中读取前端源码改动细节**，仅读取结果包做流转判断
 ** 下一个节点 **：
-  - 子流程 PASS 且 执行了后端开发 → `前后端联调测试`
-  - 子流程 PASS 且 仅前端（无后端管线） → `全量测试`
-  - 子流程 FAIL → 上报用户（子流程内部已达熔断上限），由用户决策继续/调整/终止
+  - 子agent 返回 PASS 且 执行了后端开发 → `前后端联调测试`
+  - 子agent 返回 PASS 且 仅前端（无后端管线） → `全量测试`
+  - 子agent 返回 FAIL → 上报用户（子agent 内部已达熔断上限），由用户决策继续/调整/终止
 ** 跳过条件 **：验证矩阵无前端场景（全部纯后端），直接跳转到 `全量测试`
 
 ## 节点：前后端联调测试
