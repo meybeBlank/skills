@@ -122,7 +122,7 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
        - `<doc>_验证矩阵结果包.md`
        - `<doc>_架构基线结果包.md`
        - `<doc>_契约.<ext>`（如果存在）
-  3. 在指令体末尾追加：要求子agent 完成所有阶段后，返回结构化结果摘要（PASS/FAIL + 各阶段记录 + 实现文件清单），各阶段详细产出直接写入 trace_path 对应文件
+  3. 在指令体末尾追加：要求子agent 完成所有阶段后，返回结构化结果摘要（PASS/FAIL + 各阶段记录 + **改动文件清单** + **测试数量**），各阶段详细产出直接写入 trace_path 对应文件
 ** Agent 调用 **：
   ```
   Agent(
@@ -131,7 +131,7 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
     prompt: "{上下文参数块}\n\n{backend.md全文}\n\n{返回格式要求}"
   )
   ```
-** 结果处理 **：子agent 返回后，主agent 将返回的结构化结果写入 `<主trace_path>/backend/后端开发结果包.md`。主agent **不在自己的上下文中读取后端源码改动细节**，仅读取结果包做流转判断
+** 结果处理 **：子agent 返回后，主agent 将返回的结构化结果写入 `<主trace_path>/<节点执行序号>_后端开发_后端开发结果包.md`。主agent **不在自己的上下文中读取后端源码改动细节**，仅读取结果包做流转判断
 ** 下一个节点 **：
   - 子agent 返回 PASS 且 验证矩阵有前端场景 → `前端开发`
   - 子agent 返回 PASS 且 验证矩阵无前端场景 → `全量测试`
@@ -140,7 +140,7 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 
 ## 复合节点：前端开发
 ** 类型 **：子agent（`frontend-dev`）
-** 前置依赖 **：后端开发已 PASS（若存在后端管线，确保后端 API 已就绪），通过读取 `<主trace_path>/backend/后端开发结果包.md` 确认
+** 前置依赖 **：后端开发已 PASS（若存在后端管线），通过读取 `<主trace_path>/<节点执行序号>_后端开发_后端开发结果包.md` 确认
 ** 进入条件 **：验证矩阵结果包中存在"纯前端"或"前后端组合"归属的场景
 ** 执行方式 **：使用 Agent 工具启动隔离的子agent，而非在主agent上下文中内联执行。子agent 类型 `general-purpose`（需完整工具权限：读写代码、运行测试、执行 git 操作）
 ** Agent prompt 构造 **：
@@ -150,14 +150,14 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
      - 子agent trace_path：`<主trace_path>/frontend/`（子agent 的所有阶段产出写入此目录）
      - 项目根目录：`<当前项目根目录绝对路径>`
      - 当前 git 分支：`<当前分支名>`
-     - 后端开发结果包（如执行了后端管线）：`<主trace_path>/backend/后端开发结果包.md`
+     - 后端开发结果包（如执行了后端管线）：`<主trace_path>/<节点执行序号>_后端开发_后端开发结果包.md`
      - 输入文件（完整绝对路径）：
        - `<doc>_需求理解结果包.md`
        - `<doc>_Gherkin场景文件.md`
        - `<doc>_验证矩阵结果包.md`
        - `<doc>_架构基线结果包.md`
        - `<doc>_契约.<ext>`（如果存在）
-  3. 在指令体末尾追加：要求子agent 完成所有阶段后，返回结构化结果摘要（PASS/FAIL + 各阶段记录 + 实现文件清单 + 契约一致性核对），各阶段详细产出直接写入 trace_path 对应文件
+  3. 在指令体末尾追加：要求子agent 完成所有阶段后，返回结构化结果摘要（PASS/FAIL + 各阶段记录 + **改动文件清单** + **测试数量** + 契约一致性核对），各阶段详细产出直接写入 trace_path 对应文件
 ** Agent 调用 **：
   ```
   Agent(
@@ -166,7 +166,7 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
     prompt: "{上下文参数块}\n\n{frontend.md全文}\n\n{返回格式要求}"
   )
   ```
-** 结果处理 **：子agent 返回后，主agent 将返回的结构化结果写入 `<主trace_path>/frontend/前端开发结果包.md`。主agent **不在自己的上下文中读取前端源码改动细节**，仅读取结果包做流转判断
+** 结果处理 **：子agent 返回后，主agent 将返回的结构化结果写入 `<主trace_path>/<节点执行序号>_前端开发_前端开发结果包.md`。主agent **不在自己的上下文中读取前端源码改动细节**，仅读取结果包做流转判断
 ** 下一个节点 **：
   - 子agent 返回 PASS 且 执行了后端开发 → `前后端联调测试`
   - 子agent 返回 PASS 且 仅前端（无后端管线） → `全量测试`
@@ -180,8 +180,8 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
   - `<doc>_验证矩阵结果包.md`
   - `<doc>_架构基线结果包.md`
   - `<doc>_契约.<ext>`（如果存在）
-  - `<主trace_path>/backend/后端开发结果包.md`
-  - `<主trace_path>/frontend/前端开发结果包.md`
+  - `<主trace_path>/<节点执行序号>_后端开发_后端开发结果包.md`
+  - `<主trace_path>/<节点执行序号>_前端开发_前端开发结果包.md`
 ** 节点结果 **：`<doc>_前后端联调测试结果.md`（联调结果 + 契约一致性核对）
 ** 下一个节点 **：
   - 联调 PASS → `全量测试`
@@ -196,8 +196,8 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 ** 节点输入 **：
   - `<doc>_验证矩阵结果包.md`
   - `<doc>_架构基线结果包.md`（全部子项目的测试运行命令与覆盖率工具——后端 pytest + 前端 Vitest/Playwright，按架构基线提取）
-  - `<主trace_path>/backend/后端开发结果包.md`（如果执行了后端管线）
-  - `<主trace_path>/frontend/前端开发结果包.md`（如果执行了前端管线）
+  - `<主trace_path>/<节点执行序号>_后端开发_后端开发结果包.md`（如果执行了后端管线）
+  - `<主trace_path>/<节点执行序号>_前端开发_前端开发结果包.md`（如果执行了前端管线）
 ** 节点结果 **：全部通过/存在失败、覆盖率达标判定（后端 + 前端分别统计）、`<doc>_测试结果汇总.md`
 ** 说明 **：本节点运行全量测试——不止本次改动的测试，而是项目所有测试。测试命令从架构基线提取全部子项目（后端 + 前端），分别运行并合并统计结果
 ** 下一个节点 **：
@@ -209,8 +209,8 @@ description: 以BDD(Behavior-Driven Development)为核心的一套功能开发�
 
 ## 节点：代码提交
 ** 流程编排规则文件 **：`.claude/nodes/bdd_feature/bdd_commit.md`
-** 节点输入 **：全流程各节点存档（trace_path 下结果包）、`<doc>_测试结果汇总.md`、`<主trace_path>/backend/后端开发结果包.md`、`<主trace_path>/frontend/前端开发结果包.md`
+** 节点输入 **：全流程各节点存档（trace_path 下结果包）、`<doc>_测试结果汇总.md`、`<主trace_path>/<节点执行序号>_后端开发_后端开发结果包.md`、`<主trace_path>/<节点执行序号>_前端开发_前端开发结果包.md`
 ** 节点结果 **：提交信息、提交/推送状态、工作摘要
-** 用户确认 **：**必须用户确认**是否提交git仓库（提交前），**必须用户确认**是否推送改动到远程仓库（推送前），两道确认独立
+** 用户确认 **：**必须用户确认操作**
 ** 完整性核对 **：提交前核对验证矩阵中标记的场景是否前后端均已覆盖——"纯后端"行后端代码已实现、"纯前端"行前端代码已实现、"前后端组合"行两端均已实现且联调通过
 ** 下一个节点 **：任务完成。向用户进行汇报工作摘要
