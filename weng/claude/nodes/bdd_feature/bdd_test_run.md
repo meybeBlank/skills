@@ -10,7 +10,7 @@
 输入：
 
 1. **架构基线结果包**（提取全部子项目的测试运行命令与覆盖率工具）
-2. **范式 profile**（`.claude/nodes/bdd_feature/profiles/<profile>.md` 的"覆盖率工具落地"章节）
+2. **范式 profile**（`.claude/nodes/profiles/<profile>.md` 的"覆盖率工具落地"章节）
 
 任务：运行全量测试，全部通过则放行；存在任何失败则按归属回退。
 

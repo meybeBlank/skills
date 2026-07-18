@@ -17,7 +17,7 @@
 2. **问题理解结果包**（回归范围，复核须保绿）
 3. **测试用例开发结果包**（回归保绿基线）
 4. **当前 git diff**（本次代码修改阶段实现改动，重构对象）
-5. **范式 profile**（`.claude/nodes/tdd_bug/profiles/<profile>.md` 的"审查探测方式"章节）
+5. **范式 profile**（`.claude/nodes/profiles/<profile>.md` 的"审查探测方式"章节）
 
 任务：调用 `code-refactorer` 子 agent 执行重构 → 重跑三层测试复核常绿 → 汇总存档。
 

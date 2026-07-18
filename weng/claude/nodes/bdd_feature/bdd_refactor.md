@@ -17,7 +17,7 @@
 2. **API 契约文件**（`<doc>_契约.<ext>`；若不存在则无）
 3. **验证矩阵结果包**（回归范围，复核须保绿）
 4. **当前 git diff**（本次绿阶段实现改动，重构对象）
-5. **范式 profile**（`.claude/nodes/bdd_feature/profiles/<profile>.md` 的"审查探测方式"章节）
+5. **范式 profile**（`.claude/nodes/profiles/<profile>.md` 的"审查探测方式"章节）
 
 任务：调用 `code-refactorer` 子 agent 执行重构 → 重跑三层测试复核常绿 → 汇总存档。
 
