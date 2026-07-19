@@ -67,7 +67,13 @@ Playwright E2E 测试（完整交互流，需要真实后端或 mock server）
 
 ### Playwright E2E 测试转绿
 
+> ⚠️ **强制要求**：Playwright E2E 是前端绿灯的**必选验证层**，不可跳过、不可省略。只通过 Vitest 而未运行 Playwright E2E 的前端代码，**不算绿灯**。
+
 目标：让完整交互流测试全部通过。
+
+前置条件：
+- 后端服务已启动（从架构基线提取启动命令，使用测试数据库）
+- 前端 dev server 已启动或由 Playwright 配置自动启动
 
 实现内容：
 - 装配页面路由（`pages.json`）
@@ -138,6 +144,7 @@ Playwright E2E 测试（完整交互流，需要真实后端或 mock server）
 | 检查项 | 通过标准 |
 |:---|:---|
 | 全部绿灯 | 所有批次的 Vitest + Playwright 测试全部通过 |
+| Playwright E2E 必选 | `npm run test:e2e` 全量通过，不可跳过 |
 | 无假绿 | 抽查确认断言真实有效 |
 | 无回红 | 已绿测试在最终状态下全部保持通过 |
 | 契约一致 | API 调用参数名/类型/枚举值与后端契约一致 |
